@@ -1,6 +1,6 @@
-#include "program1.h"
+#include "program2.h"
 
-int main()
-{
+int main() {
     menu_manager();
+    return 0;
 }
