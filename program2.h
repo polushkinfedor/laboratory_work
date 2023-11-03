@@ -20,10 +20,11 @@ enum serv_colors
 
 void set_color(string, int);
 string delete_extraspace_string(string);
+string get_path_to_files();
 
-void create_output_file();
-void show_info_in_console();
-
+void open_program();
+void error_with_quanity_files(bool);
 void menu_manager();
+string report_message();
 string what_to_do(string, string);
 string choose_file(bool);
