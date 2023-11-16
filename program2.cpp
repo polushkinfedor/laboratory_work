@@ -8,6 +8,18 @@ namespace global {
 
 // Дополнительные функции
 
+void open_program() {
+    system("cls");
+    cout << "You are working in program to cobble together files format\n";
+    set_color("correspondence_file_DD_MM_YYYY_TT-TT-TT", serv_yellow);
+    cout << " and ";
+    set_color("adresses_file_DD_MM_YYYY_TT-TT-TT\n", serv_yellow);
+    cout << "Files must be located by path: ";
+    set_color("C:\\Users\\koala\\CLionProjects\\program2\\Files\\ \n\n", serv_blue);
+    cout << "to start working enter any key\n";
+    getch();
+}
+
 string get_path_to_files() {
     string path = filesystem::current_path().string();
     int index = 0;
@@ -23,41 +35,6 @@ string get_path_to_files() {
     return path;
 }
 
-void open_program() {
-    system("cls");
-    cout << "You are working in program to cobble together files format\n";
-    set_color("correspondence_file_DD_MM_YYYY_TT-TT-TT", serv_yellow);
-    cout << " and ";
-    set_color("adresses_file_DD_MM_YYYY_TT-TT-TT\n", serv_yellow);
-    cout << "Files must be located by path: ";
-    set_color("C:\\Users\\koala\\CLionProjects\\program2\\Files\\ \n\n", serv_blue);
-    cout << "to start working enter any key\n";
-    getch();
-}
-
-string delete_extraspace_string(string str) { // удаление пробелов в конце строки
-    int index = 0;
-    for (int i = str.length()-1; i>=0; i--) { // удаление пробелов в конце строки
-        if (str[str.length()-1] != ' ') break; // если последний символ не пробел, то выходим из цикла
-        if (str[i] != ' ')  {   // встречаем пробел и удаляем все после него
-            index = i+1;        // после чего выходим из цикла
-            str.erase(index, str.length()-index);
-            break;
-        }
-    }
-
-    index = 0;
-    if (str[0] != ' ') return str; // если первый символ не пробел, то выходим функции
-    for (int i = 0; i<str.length(); i++) {
-        if (str[i] != ' ')  {    // встречаем пробел и удаляем все до него
-            index = i;           // после чего выходим из функции
-            str.erase(0, index);
-            break;
-        }
-    }
-    return str;
-};
-
 void set_color(string text, int color) { // выбор цвета (в значение color подставлять из перечисления serv_colors)
     SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
     cout << text;
@@ -67,7 +44,7 @@ void set_color(string text, int color) { // выбор цвета (в значе
 bool number_correct(string number) { // строка не должна содержать цифр и спец.символов
     if (number.length() < 1) return 0; // строка не пуста
     for (int i=0; i<number.length(); i++) {
-        if (not(number[i] >= '0' && number[i] <= '9')) return 0; // проверка по таблице ACHII
+        if (not(number[i] >= '0' and number[i] <= '9')) return 0; // проверка по таблице ACHII
     }
     return 1;
 }
@@ -95,7 +72,7 @@ string choose_file (bool type_of_file = false) {
         int counter = 0;
         vector<filesystem::path> file_names;
 
-        for (const auto &entry: filesystem::directory_iterator(global::path_to_files)) {
+        for (const auto & entry: filesystem::directory_iterator(global::path_to_files)) {
             if (entry.path().string().find("correspondence") != -1 and type_of_file) {
                 file_names.push_back(entry.path());
                 counter++;
@@ -162,16 +139,45 @@ string what_to_do(string path_file_two, string path_file_one) {
     } while (true);
 }
 
-string report_message() {
-    system("cls");
-    cout << "Report was formed successfully and located by path:\n";
-    set_color(get_path_to_report(), serv_yellow);
-    cout << "\n\n" << "To connected other files enter - ";
-    set_color("/cont\n", serv_green);
-    cout << "To exit enter - ";
-    set_color("/exit\n", serv_green);
+string type_of_key_word (string path_file_one, string path_file_two) {
+    while (true) {
+        string pos_key_word;
 
+        system("cls");
+        cout << "Please, choose, what key word you want to enter:\n";
+        cout << "1 -- type of correspondence\n";
+        cout << "2 -- date of send\n";
+        cout << "3 -- organisation name\n";
+        cout << "4 -- adress of organisation\n";
+        cout << "5 -- chief of organisation surname\n";
+        cout << "\n0 -- to continue\n";
+
+        global::user_input = getch();
+        if (global::user_input == "1") pos_key_word = "type_cor";
+        else if (global::user_input == "2") pos_key_word = "date_cor";
+        else if (global::user_input == "3") pos_key_word = "name_org";
+        else if (global::user_input == "4") pos_key_word = "org_adress";
+        else if (global::user_input == "5") pos_key_word = "org_surname";
+        else if (global::user_input == "0") return "continue";
+        else continue;
+
+        cout << "\nPlease, enter your key word: ";
+        getline(cin, global::user_input);
+        global::user_input = delete_extraspace_string(global::user_input);
+        key_word_search(path_file_one, path_file_two, global::user_input, pos_key_word);
+    }
+}
+
+string report_message() {
     do {
+        system("cls");
+        cout << "Report was formed successfully and located by path:\n";
+        set_color(get_path_to_report(), serv_yellow);
+        cout << "\n\n" << "To connected other files enter - ";
+        set_color("/cont\n", serv_green);
+        cout << "To exit enter - ";
+        set_color("/exit\n", serv_green);
+
         getline(cin, global::user_input);
         global::user_input = delete_extraspace_string(global::user_input);
 
@@ -188,16 +194,18 @@ void menu_manager() {
 
     open_program();
     do {
-        path_file_one = choose_file(false);
+        if (func_output != "continue") path_file_one = choose_file(false);
         if (path_file_one == "-1") break;
-        path_file_two = choose_file(true);
-        if (path_file_two == "-1") break;
+        if (func_output != "continue") path_file_two = choose_file(true);
+        if (path_file_two == "-1" and func_output != "continue") break;
         func_output = what_to_do(path_file_two, path_file_one);
         if (func_output == "create") {
             create_report(path_file_two, path_file_one);
             func_output = report_message();
         }
-        if (func_output == "console") cout << "ADD LATER";
+        if (func_output == "console") {
+            func_output = type_of_key_word(path_file_two, path_file_one);
+        }
         if (func_output == "exit") need_exit = true;
     } while (need_exit != true);
 }

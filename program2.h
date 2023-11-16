@@ -19,12 +19,12 @@ enum serv_colors
 };
 
 void set_color(string, int);
-string delete_extraspace_string(string);
 string get_path_to_files();
 
 void open_program();
 void error_with_quanity_files(bool);
 void menu_manager();
 string report_message();
+string type_of_key_word (string, string);
 string what_to_do(string, string);
 string choose_file(bool);
