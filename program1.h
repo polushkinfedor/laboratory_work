@@ -39,8 +39,10 @@ struct TAdresses
 }; // структура данных по адресам организаций
 
 // служебные функции
+string get_path_to_files();
 bool service_command(); // стандартная команда выхода из программы
 string delete_extraspace_string(string);
+string first_letterUp_other_down(string);
 string make_date();
 void set_color(string, int);
 

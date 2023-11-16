@@ -1,16 +1,32 @@
 #include "program1.h"
 
 // Область имен для глобальных переменных
+
 namespace global {
     bool program_exit = false; // необходимость выхода из программы
     string user_input = "";  // переменная пользовательского ввода программы
     string menu_position = "choose_file"; // переменная отвечающая за положение пользователя в меню
-    string path_to_files = "C:\\Users\\koala\\CLionProjects\\program1\\Files\\";
+    string path_to_files = get_path_to_files();
 }
 
 // -*-*-*-*-*-*-*-*-!
 // Служебные функции!
 // -*-*-*-*-*-*-*-*-!
+
+string get_path_to_files() {
+    string path = filesystem::current_path().string();
+    int index = 0;
+    for (int i = path.length()-1; i>0; i--) {
+        if (path[i] == '\\') {
+            index = i;
+            break;
+        }
+    }
+    path.erase(index);
+    path += "\\Files";
+    filesystem::create_directories(path);
+    return path;
+}
 
 bool service_command() { // служебные команды перемещения по меню
     if (global::user_input == "/exit" or global::user_input == "e")  { // при получении от пользователя комманды exit переставляет глобальную переменную program_exit
@@ -39,6 +55,15 @@ string delete_extraspace_string(string str) { // удаление пробело
             str.erase(0, index);
             break;
         }
+    }
+    return str;
+}
+
+string first_letterUp_other_down(string str) {
+    int delta = int('A') - int('a');
+    for (int i=0; i<str.length(); i++) {
+        if (not(i) and str[i] <= 'z' and str[i] >= 'a') str[i] += delta;  // замена маленькой буквы большой
+        else if (i and str[i] <= 'Z' and str[i] >= 'A') str[i] -= delta;  // замена большой буквы маленькой
     }
     return str;
 }
@@ -199,7 +224,7 @@ void work_correspondence_file(const string& file_name = global::path_to_files + 
         switch (counter) { // проверка и присвоение данных объекту структуры в зависимости от итерации цикла
             case 0: // первая итерация цикла
                 if (word_correct(global::user_input)) {
-                    current_input_correspondence.type = global::user_input;
+                    current_input_correspondence.type = delete_extraspace_string(global::user_input);
                     counter++;
                 }
                 else if (not(global::user_input == "/back" or global::user_input == "/exit")) {
@@ -209,7 +234,7 @@ void work_correspondence_file(const string& file_name = global::path_to_files + 
                 break;
             case 1: // вторая итерация цикла
                 if (date_correct(global::user_input)) {
-                    current_input_correspondence.date = global::user_input;
+                    current_input_correspondence.date = delete_extraspace_string(global::user_input);
                     counter++;
                 }
                 else if (not(global::user_input == "/back" or global::user_input == "/exit")) {
@@ -219,7 +244,7 @@ void work_correspondence_file(const string& file_name = global::path_to_files + 
                 break;
             case 2: // третья итерация цикла
                 if (without_special_symbols(global::user_input)) {
-                    current_input_correspondence.organisation_name = global::user_input;
+                    current_input_correspondence.organisation_name = delete_extraspace_string(global::user_input);
                     correspondence_file << current_input_correspondence.type << "!" << current_input_correspondence.date;   // вывод информации в файл
                     correspondence_file << "!" << current_input_correspondence.organisation_name << "\n";
                     counter = 0; // после третьей итерации цикла мы обнуляем счетчик
@@ -283,7 +308,7 @@ void work_adresses_file(const string& file_name = global::path_to_files + "adres
         switch (counter) { // вывод вспомогательной информации позволяющей пользователю понять, что он вводит
             case 0: // первая итерация цикла
                 if (noun_correct(global::user_input)) {
-                    current_input_adresses.organisation_name = global::user_input;
+                    current_input_adresses.organisation_name = delete_extraspace_string(global::user_input);
                     counter++;
                 }
                 else if (global::user_input != "/back" or global::user_input != "/exit") {
@@ -293,7 +318,7 @@ void work_adresses_file(const string& file_name = global::path_to_files + "adres
                 break;
             case 1: // вторая итерация цикла
                 if (without_special_symbols(global::user_input)) {
-                    current_input_adresses.adress = global::user_input;
+                    current_input_adresses.adress = delete_extraspace_string(global::user_input);
                     counter++;
                 }
                 else if (global::user_input != "/back" or global::user_input != "/exit") {
@@ -303,7 +328,7 @@ void work_adresses_file(const string& file_name = global::path_to_files + "adres
                 break;
             case 2: // третья итерация цикла
                 if (word_correct(global::user_input)) {
-                    current_input_adresses.surname_chief = global::user_input;
+                    current_input_adresses.surname_chief = first_letterUp_other_down(delete_extraspace_string(global::user_input));
                     adresses_file << current_input_adresses.organisation_name << "!" << current_input_adresses.adress; // вывод информации в файл
                     adresses_file << "!" << current_input_adresses.surname_chief << "\n";
                     counter = 0; // после третьей итерации цикла мы обнуляем счетчик
@@ -370,11 +395,11 @@ void list_files(bool type_of_file) { //вывод списков файлов д
     vector<filesystem::path> file_names;
 
     for (const auto & entry : filesystem::directory_iterator(global::path_to_files)) {
-        if (entry.path().string()[global::path_to_files.length()] == 'c' and type_of_file) {
+        if (entry.path().string().find("correspondence") != -1 and type_of_file) {
             file_names.push_back(entry.path());
             counter++;
         }
-        else if (entry.path().string()[global::path_to_files.length()] == 'a' and not(type_of_file)) {
+        else if (entry.path().string().find("adresses") != -1 and not(type_of_file)) {
             file_names.push_back(entry.path());
             counter++;
         }
@@ -413,11 +438,11 @@ void search_list_filename(bool type_of_file) { // создание списка 
     vector<filesystem::path> file_names;
 
     for (const auto & entry : filesystem::directory_iterator(global::path_to_files)) {
-        if (entry.path().string()[global::path_to_files.length()] == 'c' and type_of_file) {
+        if (entry.path().string().find("correspondence") != -1 and type_of_file) {
             file_names.push_back(entry.path());
             counter++;
         }
-        else if (entry.path().string()[global::path_to_files.length()] == 'a' and not(type_of_file)) {
+        else if (entry.path().string().find("adresses") != -1 and not(type_of_file)) {
             file_names.push_back(entry.path());
             counter++;
         }
@@ -503,8 +528,8 @@ void menu_manager() {
 void menu_choose_file() {
     cout << "The program you have launched allows you to generate two external files based on the information\n";
     cout << "entered by the user, which will be located on the computer at the address ";
-    set_color("\"C:\\Users\\koala\\CLionProjects\\program1\\Files\\\"\n\n", serv_yellow);
-    set_color("names of files will be generated based on current date and time\n\n", serv_blue);
+    set_color(global::path_to_files, serv_yellow);
+    set_color("\n\nnames of files will be generated based on current date and time\n\n", serv_blue);
 
     cout << "- to choose correspondence file enter ";
     set_color("1\n", serv_green);
@@ -544,8 +569,8 @@ void menu_correspondence_file() {
     cout << "you are working with a file of sent correspondence, a file named ";
     set_color("\"correspondence_file_DAY_MON_YYYY_HH-MM-SS\"\n", serv_yellow);
     cout << "will be created at ";
-    set_color("\"C:\\Users\\koala\\CLionProjects\\program1\\Files\\\" \n", serv_yellow);
-    cout << endl;
+    set_color(global::path_to_files, serv_yellow);
+    cout << "\n\n";
     cout << "to create a new file, enter ";
     set_color("/new\n", serv_green);
     cout << "to open an existing file, enter ";
@@ -569,8 +594,8 @@ void menu_adresses_file() {
     cout << "you are working with a file of addresses of organizations, a file named ";
     set_color("\"adresses_file_DAY_MON_YYYY_HH-MM-SS\"\n", serv_yellow);
     cout << "will be created at ";
-    set_color("\"C:\\Users\\koala\\CLionProjects\\program1\\Files\\\" \n", serv_yellow);
-    cout << endl;
+    set_color(global::path_to_files, serv_yellow);
+    cout << "\n\n";
     cout << "to create a new file, enter ";
     set_color("/new\n", serv_green);
     cout << "to open an existing file, enter ";
